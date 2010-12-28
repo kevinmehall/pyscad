@@ -78,14 +78,14 @@ class SCADObject(object):
 			children[i] = c._cpp_object()
 		print self.modname, numargs, [(i.type, i.dblValue) for i in args], numchildren
 
-		result = openscad.inst_module(self.modname, numargs, ctypes.pointer(args), numchildren, ctypes.pointer(children)) 
+		result = openscad.inst_module(self.modname, numargs, ctypes.byref(args), numchildren, ctypes.byref(children)) 
 		if self.position != (0,0,0):
 			modname = ctypes.c_char_p('translate')
 			args = (Arg*1)()
 			args[0].setFrom(self.position)
 			children = (ctypes.c_void_p * 1)()
 			children[0] = result
-			result = openscad.inst_module('translate', 1, ctypes.pointer(args), 1, children)
+			result = openscad.inst_module('translate', 1, ctypes.byref(args), 1, children)
 			
 		print "created"
 		return result
