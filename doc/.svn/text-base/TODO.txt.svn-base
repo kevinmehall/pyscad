@@ -1,0 +1,216 @@
+
+BUGS
+----
+o Some invalid DXF data gets pass the import checks and breaks the tessing code
+o Tesselation via GLU sometimes produces strange results
+o Export STL: Exports existing CGAL model even though the current model is changed, but not CGAL rendered
+o It's now possible to start a new rendering while one is already running.
+  -> turn off most (or all) interaction while rendering
+o Look into the polygon winding and rotate_extrude() problem reported by Britton
+
+STL Import BUGS
+---------------
+
+Using STL-imported models is tricky and triggers multiple issues:
+(these all fail with the usual "Illegal polygonal object" error)
+1) null-faces causes F6 rendering to fail while F5 rendering succeeds.
+   (null-faces are exported by OpenSCAD). Example: adns2610_dev_circuit_inv.stl
+   by Andrew Plumb
+2) Even very simple imported STL models don't render correctly with F5 when taking 
+   a difference(), though F6 looks correct. Example: test_cube.stl by Andrew Plumb
+   with this scad file:
+   difference() {
+     import_stl("test_cube.stl");
+     translate([2,2,2]) cylinder(h=10);
+   }
+3) More complex STL models with something simple unioned or subtracted fails rendering 
+   using F6 even though F5 works. Example: adns2610_dev_circuit_inv.stl
+   by Andrew Plumb with the three null-faces removed by MeshLab with this scad file:
+   union() {
+     import_stl("adns2610_dev_circuit_inv_4.stl");
+     sphere(r=5);
+   }
+4) More complex STL models cannot be projected (both F5 and F6).
+   Example: adns2610_dev_circuit_inv.stl by Andrew Plumb with the three 
+   null-faces removed by MeshLab and this scad file:
+   projection(cut=true) {
+     import_stl("adns2610_dev_circuit_inv.stl");
+   }
+
+CRASH BUGS
+----------
+o Broken polyhedron() entities are not correctly detected and cause CGAL segfaults
+o linear_extrude(50) square([5,0]);
+o union() {
+    linear_extrude(height=10, twist=90) circle(5);
+    translate([7,-5,0]) linear_extrude(height=10, twist=180) polygon(points = [[0,0], [10,0], [5,10]]);
+  }
+o non-convex minkowski example from chrysn fails with an exception
+
+USER INTERFACE
+--------------
+o Preferences
+  - Remember settings done in menus between sessions (automatic reload, perspective, show*, hide*)
+  - Beautify color schemes
+  - Color schemes read from file
+  - Color scheme editor
+  - wireframe width
+  - pointsize
+  - OpenGL params
+  - Default language feature settings
+  - Auto-view CSG/thrown together on load
+  - Make the library search path configurable?
+o Export etc.: automatically add missing extension as in SaveAs
+o MDI
+  - Think about how to do MDI the right way
+  - Ctrl-W should close the current dialog, not the current main window
+    -> implement as for Preferences?
+  - Menu bar handling:
+    Mac: share menubar among all top-level windows?
+  - currentPath is global but is used by each document, e.g. parser
+    and handle_dep.
+o 3D View
+  - OpenGL 2.0 test: What, exactly, is needed from OpenGL 2.0? Can we use 1.x with extensions?
+  - Improve mouse rotation
+  - Add modifier key combos to handle pan and zoom on 1 mouse button systems
+  - Show grid
+  - 4 x split view w/orthogonal cameras?
+  - Quick highlighting of object under the cursor in the editor
+  - View All
+  - overlay indicator displaying current view mode
+  - OpenCSG rendering: Coincident surfaces causes z-buffer fighting. Is this somehow
+    avoidable tuning the depth tests in OpenCSG? 
+o Editor wishlist
+  - More infrastructure for external editor (allow communication from the outside)
+  - Preferences GUI for the features below
+  - line numbers
+  - tear-off/maximize options?
+  - Save somehow uses current dir, even if the file is already saved earlier
+  - Code completion/hints for builtin (and user-defined) functions/modules
+  - builtin quick function reference/help
+  - Drawer/popup with all modules/functions listed which can be inserted into
+    the editor by clicking or drag&drop -> icons in toolbar?
+    -> This would be moving in the direction of a traditional CAD GUI
+       and needs a fair bit of thinking.
+  - Display some kind of line wrap indicator
+  - Couple the source code to the AST to allow highlighting selected elements
+    in the source code in the 3D view
+  - Tabbed editor for designs including other files
+  - C-c/C-v should work on the focused widget, not always in the editor
+
+o Computation
+  - Run CGAL rendering in a backgroud thread
+  - Enable viewing/editing while rendering
+  - Progress: Call progresswidget more often to avoid app hanging for multiple
+    seconds (i.e. make cancel button more responsive)
+o Misc
+  - Reload and compile: Ask for confirmation if file is locally edited
+    (make this configurable in preferences?)
+  - Save: Ask for confirmation if file has been externally changed
+  - Rename OpenCSG and CGAL to smth. not specific to the underlying libraries
+    (e.g Preview, Render)
+
+ENGINE
+------
+o Primitives
+  - Springs, spirals (requested by Cathal Garvey)
+  - (TTF) Text
+  - Image-based height field like http://www.thingiverse.com/thing:2078
+  - mesh (coordinates and indices)
+o 2D Subsystem
+  - Performance: Is it necessary to union children before extrusion
+    when compiling? Can this be postponed to CGAL evaluation time?
+  - Add inset() operation
+o Built-in modules
+  - extrude*: Allow the base 2D primitive to have a Z value
+  - rotate_extrude(): Allow for specification of start/stop/sweep angle?
+  - Convex hull of multiple 2D or 2D objects
+o Advanced Transformations
+  - Add statement for refinement via surface subdivision
+  - Add statement for intersections in cartesian product of childs
+o Function-Module-Interface
+  - Pass a module instanciation to a function (e.g. for a volume() function)
+  - Pass a function to a module instanciation (e.g. for dynamic extrusion paths)
+o Language Frontend
+  - include statement doesn't support nesting. This can be fixed by
+    keeping a nested stack of current input files in the lexer. See
+    the "Flex & Bison" O'Reilly book, "Start States and Nested Input
+    Files", page 28, for an example.
+  - Allow local variables and functions everywhere (not only on module level)
+  - allow 0/1 f/t FALSE/TRUE as boolean values
+  - allow any expression to be evaluated as boolean (e.g. 1 = true, 0 = false)
+  - Rethink for vs. intersection_for vs. group. Should for loops
+    generate child lists instead, and make these passable to other
+    modules or accessible by child()?
+o DXF Import/Export
+  - Use dxflib from RibbonSoft for import/export? -> investigate
+  - Import
+    - Support for POLYLINE entity
+    - Support for SPLINE entity
+    - Support for LEADER entity
+    - Support for MTEXT entity ?
+    - idea: DXF inline - convert from dxf to OpenSCAD syntax -> parametrize dxf content
+o Mesh optimization on STL export
+  - Remove super small triangles (all sides are short)
+  - Replace super thin triangles (one h is short)
+o Misc
+  - Add symbolic colors to the color() statement
+  - When specifying a transparency with the color() statement,
+    the object is not sorted and will be rendered wrongly
+  - Go through default values of parameters (e.g. cube() has x,y,z=1 while linear_extrude() has height=100)
+  - Add support for symbolic names to child() statement 
+  - Add 'lines' object type for non-solid 2d drawings
+  - Is there a reason why modules like echo, empty if, empty for loop returns an
+    empty AbstractNode instead of being ignored?
+o Grammar
+  - dim->name -> dim->label
+  - A random(seed) function
+  - import_*() -> *_import() (consistent prefix vs. postfix)
+  - linear_extrude()/rotate_extrude(): Cumbersome names? -> (extrude, revolve, lathe, sweep ?) 
+
+CODE
+----
+
+o Refactor from MainWindow:
+  - Put all application-global data in one place (QApplication subtype?)
+  - Fix current_win hack
+  - CSG data structure (compiled model)
+  - CGAL data structure (compiled model)
+o C++-ify
+  - Use smart pointers where it makes sense (e.g. instead of homegrown refcount,
+    and to get memory ownership under control)
+  - Use static_cast/dynamic_cast instead of C-style casts
+o dxflinextrude and dxfrotextrude could share code
+o Consider decoupling DXF-specific functionality from the 2D subsystem
+o Visitation refactoring
+  - Make AbstractNode members private/protected?
+
+TESTING
+-------
+o Caching and MDI looks suspicious when the code relies on external resources
+  which might be loaded from difference locations in different documents
+  -> we might get a false cache hit
+o Are contructs like "child(0)" cached? Could this give false cache hits?
+o Write some cmd-line apps that dump an openscad file to misc. formats
+  (dump, stl, dxf)
+o Write a simple test script that collects verified and current STL renderings
+  and displays them side-by-side or smth.
+o Write simple driver scripts for comparing output of above command
+o Collect "all" available OpenSCAD scripts from the internets and run the integration
+  tests on them all
+
+INFRASTRUCTURE
+--------------
+o Use a logging framework to get debugging/info output more under control?
+  (check log4j, google project)
+
+MISC
+----
+o Streamline the cmd-line interface a bit
+  - Implicit output file format
+o Mac OS X:
+  - 32-bit compatibility
+    o Build everything including i386 arch
+
+o Write checklists for typical extension work (add new module, add new function)
+  -> make sure new test files are added

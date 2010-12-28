@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/openscad/!svn/ver/573/trunk/test-code
+END
+dumptest.pro
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/openscad/!svn/ver/573/trunk/test-code/dumptest.pro
+END
+dumptest.cc
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/openscad/!svn/ver/573/trunk/test-code/dumptest.cc
+END
+nef_polyhedron_2-bug.cc
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/openscad/!svn/ver/345/trunk/test-code/nef_polyhedron_2-bug.cc
+END
+batch-dump.sh
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/openscad/!svn/ver/569/trunk/test-code/batch-dump.sh
+END
+batch-cgal-tests.sh
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/openscad/!svn/ver/569/trunk/test-code/batch-cgal-tests.sh
+END
+batch-cgal.sh
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/openscad/!svn/ver/569/trunk/test-code/batch-cgal.sh
+END
