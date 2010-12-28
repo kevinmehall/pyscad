@@ -32,15 +32,16 @@ class Arg(ctypes.Structure):
 		elif isinstance(val, str):
 			self.type = 's'
 			self.strValue = ctypes.c_char_p(val)
-		elif isinstance(val, list):
+		elif isinstance(val, list) or isinstance(val, tuple):
 			self.type = 'v'
-			self.vecLen = ctypes.c_int(len(list))
-			arr = (ctypes.double * len(list))()
+			self.vecLen = ctypes.c_int(len(val))
+			arr = (ctypes.c_double * len(val))()
 			for i, v in enumerate(val):
 				arr[i] = ctypes.c_double(v)
-			self.vecValue = pointer(arr)
+			print arr
+			self.vecValue = arr
 				
-class SCADObject:
+class SCADObject(object):
 	def __init__(self, modname, *args, **kwargs):
 		self.modname = modname
 		if 'children' in kwargs:
@@ -48,12 +49,20 @@ class SCADObject:
 			del kwargs['children']
 		else:
 			self.children = []
-			
 		self.args = args
 		self.kwargs = kwargs
+		self.position = (0,0,0)
 		
-	def cpp_object(self):
-		modname = ctypes.c_char_p(self.modname)
+	def __add__(self, x):
+		return union(self, x)
+
+	def __sub__(self, x):
+		return difference(self, x)
+
+	def __mul__(self, x):
+		return intersection(self, x)
+
+	def _cpp_object(self):
 		numargs = len(self.args) + len(self.kwargs)
 		args = (Arg*numargs)()
 		i = 0
@@ -61,21 +70,59 @@ class SCADObject:
 			args[i].setFrom(a)
 			i += 1
 		for n in self.kwargs:
-			argarr[i].setFrom(kwargs[n], name=n)
+			args[i].setFrom(self.kwargs[n], name=n)
 			i += 1
 		numchildren = len(self.children)
 		children = (ctypes.c_void_p * numchildren)()
 		for i, c in enumerate(self.children):
-			children[i] = c.cpp_object()
-		print numargs, [(i.type, i.dblValue) for i in args]
+			children[i] = c._cpp_object()
+		print self.modname, numargs, [(i.type, i.dblValue) for i in args], numchildren
+
+		result = openscad.inst_module(self.modname, numargs, ctypes.pointer(args), numchildren, ctypes.pointer(children)) 
+		if self.position != (0,0,0):
+			modname = ctypes.c_char_p('translate')
+			args = (Arg*1)()
+			args[0].setFrom(self.position)
+			children = (ctypes.c_void_p * 1)()
+			children[0] = result
+			result = openscad.inst_module('translate', 1, ctypes.pointer(args), 1, children)
 			
-		return openscad.inst_module(modname, numargs, ctypes.pointer(args), numchildren, ctypes.pointer(children)) 
+		print "created"
+		return result
 		
-				
+	def render(self):
+		print "rendering"
+		openscad.render(self._cpp_object())
+
+class sphere(SCADObject):
+	def __init__(self, radius, position = (0,0,0)):
+		super(sphere, self).__init__(modname='sphere', r = radius)
+		self.position = position
+
+class cube(SCADObject):
+	def __init__(self, size, position = (0,0,0)):
+		super(cube, self).__init__(modname='cube', size = size)
+		self.position = position
+
+class cylinder(SCADObject):
+	def __init__(self, height, radiusTop, radiusBottom = None, position = (0,0,0)):
+		if radiusBottom == None:
+			radiusBottom = radiusTop
+		super(cylinder, self).__init__(modname='cylinder', h = height, r1 = radiusTop, r2 = radiusBottom)
+		self.position = position
+
+class union(SCADObject):
+	def __init__(self, *children):
+		super(union, self).__init__(modname='union', children=children)
+
+class difference(SCADObject):
+	def __init__(self, *children):
+		super(difference, self).__init__(modname='difference', children=children)
+
+class intersection(SCADObject):
+	def __init__(self, *children):
+		super(intersection, self).__init__(modname='intersection', children=children)
+		
 		
 
-sphere = SCADObject('sphere', 10)
-cube = SCADObject('cube', 10, 10, 10)
-union = SCADObject('union', children=[sphere, cube])
-openscad.render(union.cpp_object())
 
