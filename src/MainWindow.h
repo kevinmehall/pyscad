@@ -14,6 +14,7 @@ class MainWindow : public QMainWindow, public Ui::MainWindow
 	Q_OBJECT
 
 public:
+	void renderModuleInstantiaton(ModuleInstantiation *root_module_inst);
 	static void requestOpenFile(const QString &filename);
 
 	QString fileName;

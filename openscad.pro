@@ -1,6 +1,12 @@
 isEmpty(VERSION) VERSION = $$system(date "+%Y.%m.%d")
 DEFINES += OPENSCAD_VERSION=$$VERSION
-TEMPLATE = app
+
+python{
+	TEMPLATE = lib
+	SOURCES += src/python.cc
+}else{
+	TEMPLATE = app
+}
 RESOURCES = openscad.qrc
 
 OBJECTS_DIR = objects
