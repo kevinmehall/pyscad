@@ -78,6 +78,12 @@ extern "C" void render(ModuleInstantiation *mod){
 	
 	MainWindow *m = new MainWindow(qfilename);
 	
+	// Hide console, editor by default
+	m->viewActionHide->setChecked(true);
+	m->editActionHide->setChecked(true);
+	m->editor->hide();
+	m->console->hide();
+	
 	m->renderModuleInstantiaton(mod);
 	
 	app.connect(m, SIGNAL(destroyed()), &app, SLOT(quit()));
