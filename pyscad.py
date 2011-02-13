@@ -42,7 +42,6 @@ class Arg(ctypes.Structure):
 			arr = (ctypes.c_double * len(val))()
 			for i, v in enumerate(val):
 				arr[i] = ctypes.c_double(v)
-			print arr
 			self.vecValue = arr
 				
 class SCADObject(object):
@@ -80,7 +79,6 @@ class SCADObject(object):
 		children = (ctypes.c_void_p * numchildren)()
 		for i, c in enumerate(self.children):
 			children[i] = c._cpp_object()
-		print self.modname, numargs, [(i.type, i.dblValue) for i in args], numchildren
 
 		result = openscad.inst_module(self.modname, numargs, ctypes.byref(args), numchildren, ctypes.byref(children)) 
 		if self.position != (0,0,0):
@@ -91,11 +89,9 @@ class SCADObject(object):
 			children[0] = result
 			result = openscad.inst_module('translate', 1, ctypes.byref(args), 1, children)
 			
-		print "created"
 		return result
 		
 	def render(self):
-		print "rendering"
 		openscad.render(self._cpp_object())
 		
 	def export_stl(self, filename):

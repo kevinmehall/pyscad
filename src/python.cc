@@ -32,16 +32,12 @@ extern "C" ModuleInstantiation* inst_module(const char* name, int numargs, Arg* 
 		Arg* arg = &args[i];
 		Expression* a = new Expression();
 		a->type = "C";
-		printf("arg %i: %c\n", i, arg->valueType);
 		if (arg->valueType=='d'){
-			printf("double val: %f\n", arg->dblValue);
 			a->const_value = new Value(arg->dblValue);
 		}else if(arg->valueType=='v'){
-			printf("vec val of length %i\n", arg->vecLen);
 			a->const_value = new Value();
 			a->const_value->type = Value::VECTOR;
 			for (int i=0; i<arg->vecLen; i++){
-				printf("\tvec[%i] = %f\n", i, arg->vecValue[i]);
 				Value *v = new Value(arg->vecValue[i]);
 				a->const_value->vec.append(v);
 			}
@@ -51,9 +47,7 @@ extern "C" ModuleInstantiation* inst_module(const char* name, int numargs, Arg* 
 		mod->argexpr.append(a);
 		if (arg->name){
 			mod->argnames.append(QString(arg->name));
-			printf("Named\n");
 		}else{
-			printf("Unnamed\n");
 			mod->argnames.append(QString());
 		}
 	}
