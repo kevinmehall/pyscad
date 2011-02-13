@@ -167,6 +167,10 @@ extern "C" const char *export_stl(ModuleInstantiation *mod, const char * filenam
 	return 0;
 }
 
+extern "C" const char *to_source(ModuleInstantiation *mod){
+	return mod->dump("").toUtf8();
+}
+
 extern "C" void init(){
 	initialize_builtin_functions();
 	initialize_builtin_modules();
