@@ -23,6 +23,10 @@ For example, Eagle CAD, one of the most common circuit design tools, is moving t
 
 A more futuristic example would be leveraging a text-to-speech engine and a natural language toolkit to allow verbal design of 3d objects.
 
+##Technical Details
+
+PySCAD uses `ctypes` to bind with the existing OpenSCAD code. OpenSCAD internally represents parsed code as an Abstract Syntax Tree (AST). This AST is then evaluated into a tree of nodes that are passed to OpenCSG. PySCAD integrates at the AST level, because it allows us to re-use OpenSCAD's constructors for primitives, as well as wrap other functionality, such as DXF import. A small shim, `src/python.cc` exposes a C API for instanting OpenSCAD AST objects and forcing OpenSCAD to render them. This is wrapped in a pythonic, object-oriented API. 
+
 ##What's Next?
 
 Lots more development. This project is pre-alpha; we have a solid direction, but lots more to add. Even so, this code provides a useful interface to OpenSCAD. Ian is working on a wrapper library which will provide an object-orented interface to OpenSCAD functions. Kevin is continuing to rock the low-level C++ hacking. We're actively looking for more help. Feel free to drop us a line via [Kevin's Blog](http://kevinmehall.net) or [Ian's Site](itdnhr.com). 
