@@ -2,7 +2,10 @@ import ctypes
 openscad=ctypes.cdll.LoadLibrary('./libopenscad.so')
 
 openscad.inst_module.restype = ctypes.c_void_p
+openscad.export_stl.restype = ctypes.c_char_p
+openscad.export_dxf.restype = ctypes.c_char_p
 
+openscad.init()
 
 class Value(ctypes.Union):
 	_fields_ = [
@@ -93,6 +96,16 @@ class SCADObject(object):
 	def render(self):
 		print "rendering"
 		openscad.render(self._cpp_object())
+		
+	def export_stl(self, filename):
+		err = openscad.export_stl(self._cpp_object(), filename)
+		if err:
+			raise ValueError(err)
+			
+	def export_dxf(self, filename):
+		err = openscad.export_dxf(self._cpp_object(), filename)
+		if err:
+			raise ValueError(err)
 
 class sphere(SCADObject):
 	def __init__(self, radius, position = (0,0,0)):

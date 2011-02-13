@@ -674,6 +674,12 @@ fail:
 	}
 }
 
+void MainWindow::renderNode(AbstractNode *node){
+	root_node = node;
+	compileCSG(true);
+	viewModeOpenCSG();
+}
+
 /*!
 	Generates CSG tree for OpenCSG evaluation.
 	Assumes that the design has been parsed and evaluated
@@ -1043,23 +1049,6 @@ void MainWindow::actionReloadCompile()
 		screen->updateGL();
 	}
 	clearCurrentOutput();
-}
-
-void MainWindow::renderModuleInstantiaton(ModuleInstantiation *root_module_inst){
-	absolute_root_node = root_module_inst->evaluate(&root_ctx);
-
-	if (!absolute_root_node)
-		return;
-
-	// Do we have an explicit root node (! modifier)?
-	if (!(this->root_node = find_root_tag(absolute_root_node))) {
-		this->root_node = absolute_root_node;
-	}
-	root_node->dump("");
-	
-	if (this->root_node) compileCSG(!viewActionAnimate->isChecked());
-	
-	viewModeOpenCSG();
 }
 
 void MainWindow::actionCompile()
