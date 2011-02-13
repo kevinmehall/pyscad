@@ -1,6 +1,7 @@
 /*
- *  OpenSCAD (www.openscad.at)
- *  Copyright (C) 2009  Clifford Wolf <clifford@clifford.at>
+ *  OpenSCAD (www.openscad.org)
+ *  Copyright (C) 2009-2011 Clifford Wolf <clifford@clifford.at> and
+ *                          Marius Kintel <marius@kintel.net>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,9 +29,10 @@
 #include "openscad.h"
 #include "printutils.h"
 #include "parser_yacc.h"
+#include <QStack>
 #include <QFileInfo>
 #include <QDir>
-
+QString* stringcontents;
 int lexerget_lineno(void);
 #ifdef __GNUC__
 static void yyunput(int, char*) __attribute__((unused));
@@ -58,34 +60,32 @@ extern const char *parser_source_path;
   }                                       \
 }
 
+void includefile();
+QDir sourcepath();
+QStack<QDir> path_stack;
+
+QString filename;
+QString filepath;
+
 %}
 
 %option yylineno
 %option noyywrap
 
-%x comment
+%x comment string
+%x include
 
 DIGIT [0-9]
 
 %%
 
-include[ \t\r\n>]*"<"[^ \t\r\n>]+">" {
-	QString filename(yytext);
-	filename.remove(QRegExp("^include[ \t\r\n>]*<"));
-	filename.remove(QRegExp(">$"));
-	QFileInfo finfo(QDir(parser_source_path), filename);
-	if (!finfo.exists()) {
-		finfo = QFileInfo(QDir(librarydir), filename);
-	}
-	handle_dep(finfo.absoluteFilePath());
-	yyin = fopen(finfo.absoluteFilePath().toLocal8Bit(), "r");
-	if (!yyin) {
-		PRINTA("WARNING: Can't open input file `%1'.", filename);
-	} else {
-		yypush_buffer_state(yy_create_buffer( yyin, YY_BUF_SIZE ));
-		BEGIN(INITIAL);
-	}
+include[ \t\r\n>]*"<"	{ BEGIN(include); }
+<include>{
+[^\t\r\n>]+"/"	{ filepath = yytext; }
+[^\t\r\n>/]+	{ filename = yytext; }
+">"		{ BEGIN(INITIAL); includefile(); }
 }
+
 
 use[ \t\r\n>]*"<"[^ \t\r\n>]+">" {
 	QString filename(yytext);
@@ -121,6 +121,8 @@ use[ \t\r\n>]*"<"[^ \t\r\n>]+">" {
 }
 
 <<EOF>> {
+	if(!path_stack.isEmpty())
+		path_stack.pop();
 	if (yyin && yyin != stdin)
 		fclose(yyin);
 	yypop_buffer_state();
@@ -140,10 +142,18 @@ use[ \t\r\n>]*"<"[^ \t\r\n>]+">" {
 {DIGIT}+|{DIGIT}*\.{DIGIT}+|{DIGIT}+\.{DIGIT}* { parserlval.number = QString(yytext).toDouble(); return TOK_NUMBER; }
 "$"?[a-zA-Z0-9_]+ { parserlval.text = strdup(yytext); return TOK_ID; }
 
-\"[^"]*\" {
-	parserlval.text = strdup(yytext+1);
-	parserlval.text[strlen(parserlval.text)-1] = 0;
-	return TOK_STRING;
+\"			{ BEGIN(string); stringcontents = new QString(); }
+<string>{
+\\n			{ stringcontents->append('\n'); }
+\\t			{ stringcontents->append('\t'); }
+\\r			{ stringcontents->append('\r'); }
+\\\\			{ stringcontents->append('\\'); }
+\\\"			{ stringcontents->append('"'); }
+[^\\\n\"]+		{ stringcontents->append(lexertext); }
+\"			{ BEGIN(INITIAL); 
+			parserlval.text = strdup(stringcontents->toLocal8Bit()); 
+			delete stringcontents; 
+			return TOK_STRING; }
 }
 
 [\n\r\t ]
@@ -160,4 +170,44 @@ use[ \t\r\n>]*"<"[^ \t\r\n>]+">" {
 "||"	return OR;
 
 . { return yytext[0]; }
+
+%%
+
+QDir sourcepath()
+{
+	if(!path_stack.isEmpty())
+		return path_stack.top();
+
+	return QDir(parser_source_path);
+}
+
+void includefile()
+{
+	if(filename.isEmpty())
+		return;
+
+	if(filepath.isEmpty()) {
+		path_stack.push(sourcepath());
+	} else {
+		QFileInfo dirinfo(sourcepath(),filepath);
+		path_stack.push(dirinfo.dir());
+		filepath.clear();
+	}
+
+	QFileInfo finfo(sourcepath(), filename);
+	if (!finfo.exists()) {
+		finfo = QFileInfo(QDir(librarydir), filename);
+	}
+
+	handle_dep(finfo.absoluteFilePath());
+	yyin = fopen(finfo.absoluteFilePath().toLocal8Bit(), "r");
+	if (!yyin) {
+		PRINTA("WARNING: Can't open input file `%1'.", filename);
+		path_stack.pop();
+		return;
+	}
+	filename.clear();
+
+	yypush_buffer_state(yy_create_buffer( yyin, YY_BUF_SIZE ));
+}
 
