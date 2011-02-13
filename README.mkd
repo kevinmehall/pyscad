@@ -1,0 +1,28 @@
+pySCAD: Parameteric Python Design
+===
+
+##About OpenSCAD:
+
+[OpenSCAD](http://openscad.org/) is an interactive constructive solid modelling tool which provides the ability to design, extrude, and compile 3D objects using a custom C-like syntax.
+
+Built on Qt4, CGAL, OpenCSG, and Eigen, OpenSCAD allows users to describe objects with a functional language, providing a WYSIWYM(what-you-see-is-what-you-mean) interface to solid objects, in a similar paradigm to LaTeX.
+
+This tool provides transformations including scale, rotate, translate, and mirror as well as operations including union, difference, and render intersection. Using just these functions, a wide user base have produced [a number of objects](http://www.thingiverse.com/tag:openscad) including a [RepRap variant](https://github.com/prusajr/PrusaMendel), from simple starting blocks: cubes, spheres, cylinders, and polyhedra.
+
+It's received [lots](http://blog.thingiverse.com/2009/11/06/in-which-openscad-wins-me-over/) of [good](http://hackaday.com/2010/01/12/how-to-make-a-printable-ces-badge/) [press](http://blog.makezine.com/archive/2009/11/openscad_constructive_solid_geometr.html) for its easy of use, versatility, and extensive functionality. However, it uses a custom, slightly archaic syntax, doesn't integrate well with other tools, lacks customization, and requires significant overhead.
+
+We sought to change that.
+
+##Why PySCAD?
+
+Python is the language of choice for many developers, especially in the desktop manufacturing sector. Skeinforge, a vital component of the printing process for both Makerbots and RepRaps, is written entirely in Python. It provides multiparadigm programming and a wide range of libraries ranging from computer vision, natural language processing, to web handling. As such, it makes an ideal base for to expand OpenSCAD.
+
+A set of Python bindings to OpenSCAD would provide a familiar syntax, optional object-oriented coding, and greatly increase the ability for automating the design of solid objects.It will hopefully become trivial to add extended functionality to 3d models.
+
+For example, Eagle CAD, one of the most common circuit design tools, is moving to an XML format for boards and parts. It will soon be possible to parse board design files in Python. The next step would be writing a script to automatically design, compile, and print a case for an arbitrary circuit board. 
+
+A more futuristic example would be leveraging a text-to-speech engine and a natural language toolkit to allow verbal design of 3d objects.
+
+##What's Next?
+
+Lots more development. This project is pre-alpha; we have a solid direction, but lots more to add. Even so, this code provides a useful interface to OpenSCAD. Ian is working on a wrapper library which will provide an object-orented interface to OpenSCAD functions. Kevin is continuing to rock the low-level C++ hacking. We're actively looking for more help. Feel free to drop us a line via [Kevin's Blog](http://kevinmehall.net) or [Ian's Site](itdnhr.com). 
