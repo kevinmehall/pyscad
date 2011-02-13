@@ -29,4 +29,4 @@ PySCAD uses `ctypes` to bind with the existing OpenSCAD code. OpenSCAD internall
 
 ##What's Next?
 
-Lots more development. This project is pre-alpha; we have a solid direction, but lots more to add. Even so, this code provides a useful interface to OpenSCAD. Ian is working on a wrapper library which will provide an object-orented interface to OpenSCAD functions. Kevin is continuing to rock the low-level C++ hacking. We're actively looking for more help. Feel free to drop us a line via [Kevin's Blog](http://kevinmehall.net) or [Ian's Site](itdnhr.com). 
+Lots more development. This project is pre-alpha; we have a solid direction, but lots more to add. Even so, this code provides a useful interface to OpenSCAD. Ian is working on a wrapper library which will provide an object-orented interface to OpenSCAD functions. Kevin is continuing to rock the low-level C++ hacking. We're actively looking for more help. Feel free to drop us a line via [Kevin's Blog](http://kevinmehall.net) or [Ian's Site](http://itdnhr.com). 
