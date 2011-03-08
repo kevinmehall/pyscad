@@ -1,12 +1,12 @@
 import ctypes
-openscad=ctypes.cdll.LoadLibrary('./libopenscad.so')
+_openscad=ctypes.cdll.LoadLibrary('./libopenscad.so')
 
-openscad.inst_module.restype = ctypes.c_void_p
-openscad.export_stl.restype = ctypes.c_char_p
-openscad.export_dxf.restype = ctypes.c_char_p
-openscad.to_source.restype = ctypes.c_char_p
+_openscad.inst_module.restype = ctypes.c_void_p
+_openscad.export_stl.restype = ctypes.c_char_p
+_openscad.export_dxf.restype = ctypes.c_char_p
+_openscad.to_source.restype = ctypes.c_char_p
 
-openscad.init()
+_openscad.init()
 
 class Value(ctypes.Union):
 	_fields_ = [
@@ -80,32 +80,32 @@ class SCADObject(object):
 		for i, c in enumerate(self.children):
 			children[i] = c._cpp_object()
 
-		result = openscad.inst_module(self.modname, numargs, ctypes.byref(args), numchildren, ctypes.byref(children)) 
+		result = _openscad.inst_module(self.modname, numargs, ctypes.byref(args), numchildren, ctypes.byref(children)) 
 		if self.position != (0,0,0):
 			modname = ctypes.c_char_p('translate')
 			args = (Arg*1)()
 			args[0].setFrom(self.position)
 			children = (ctypes.c_void_p * 1)()
 			children[0] = result
-			result = openscad.inst_module('translate', 1, ctypes.byref(args), 1, children)
+			result = _openscad.inst_module('translate', 1, ctypes.byref(args), 1, children)
 			
 		return result
 		
 	def render(self):
-		openscad.render(self._cpp_object())
+		_openscad.render(self._cpp_object())
 		
 	def export_stl(self, filename):
-		err = openscad.export_stl(self._cpp_object(), filename)
+		err = _openscad.export_stl(self._cpp_object(), filename)
 		if err:
 			raise ValueError(err)
 			
 	def export_dxf(self, filename):
-		err = openscad.export_dxf(self._cpp_object(), filename)
+		err = _openscad.export_dxf(self._cpp_object(), filename)
 		if err:
 			raise ValueError(err)
 			
 	def to_source(self):
-		return openscad.to_source(self._cpp_object())
+		return _openscad.to_source(self._cpp_object())
 
 class sphere(SCADObject):
 	def __init__(self, radius, position = (0,0,0)):
