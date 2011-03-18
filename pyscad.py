@@ -55,7 +55,8 @@ class SCADObject(object):
 		self.args = args
 		self.kwargs = kwargs
 		self.position = (0,0,0)
-		
+
+	#overload addition, subtraction, multiplication for SCADObjects		
 	def __add__(self, x):
 		return union(self, x)
 
