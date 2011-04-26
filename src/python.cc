@@ -17,6 +17,7 @@ struct Arg{
 	int vecLen;
 	union{
 		double dblValue;
+		bool boolValue;
 		const char* strValue;
 		double *vecValue;
 	};
@@ -34,6 +35,8 @@ extern "C" ModuleInstantiation* inst_module(const char* name, int numargs, Arg* 
 		a->type = "C";
 		if (arg->valueType=='d'){
 			a->const_value = new Value(arg->dblValue);
+		}else if(arg->valueType=='b'){
+			a->const_value = new Value(arg->boolValue == 1 ? 'true' : 'false');
 		}else if(arg->valueType=='v'){
 			a->const_value = new Value();
 			a->const_value->type = Value::VECTOR;
