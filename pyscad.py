@@ -13,6 +13,7 @@ class Value(ctypes.Union):
 	_fields_ = [
 		("dblValue", ctypes.c_double),
 		("strValue", ctypes.c_char_p),
+		("boolValue", ctypes.c_bool),
 		("vecValue", ctypes.POINTER(ctypes.c_double)),
 	]
 	
@@ -38,7 +39,10 @@ class Arg(ctypes.Structure):
 		else:
 			self.name = ctypes.c_char_p(0)
 			
-		if isinstance(val, int) or isinstance(val, float):
+		if isinstance(val, bool):
+			self.type = 'b'
+			self.boolValue = ctypes.c_bool(val)
+		elif isinstance(val, int) or isinstance(val, float):
 			self.type = 'd'
 			self.dblValue = ctypes.c_double(val)
 		elif isinstance(val, str):
@@ -71,7 +75,7 @@ class SCADObject(object):
 			self.children = []
 		self.args = args
 		self.kwargs = kwargs
-		self.position = (0,0,0)
+		self.transforms = {}
 
 	#overload addition, subtraction, multiplication for SCADObjects		
 	def __add__(self, x):
@@ -115,13 +119,14 @@ class SCADObject(object):
 			children[i] = c._cpp_object()
 
 		result = _openscad.inst_module(self.modname, numargs, ctypes.byref(args), numchildren, ctypes.byref(children)) 
-		if self.position != (0,0,0):
-			modname = ctypes.c_char_p('translate')
-			args = (Arg*1)()
-			args[0].setFrom(self.position)
-			children = (ctypes.c_void_p * 1)()
-			children[0] = result
-			result = _openscad.inst_module('translate', 1, ctypes.byref(args), 1, children)
+		if len(self.transforms) > 0:
+			for transform in self.transforms.keys():
+				modname = ctypes.c_char_p(transform)
+				args = (Arg * 1)()
+				args[0].setFrom(self.transforms[transform])
+				children = (ctypes.c_void_p * 1)()
+				children[0] = result
+				result = _openscad.inst_module(transform, 1, ctypes.byref(args), 1, children)
 			
 		return result
 		
@@ -151,31 +156,33 @@ class SCADObject(object):
 
 class sphere(SCADObject):
 	"""An OpenSCAD sphere."""
-	def __init__(self, radius, position = (0,0,0)):
+	def __init__(self, radius, center = True, transforms = {}):
 		"""Create and display a sphere.
 		
 		Arguments:
 		real -- the radius
 		tuple -- the position
 		"""		
-		super(sphere, self).__init__(modname='sphere', r = radius)
-		self.position = position
+		
+		super(sphere, self).__init__(modname='sphere', r = radius, center = center)
+		
+		self.transforms = transforms
 
 class cube(SCADObject):
 	"""An OpenSCAD cube."""
-	def __init__(self, size, position = (0,0,0)):
+	def __init__(self, size, center = False, transforms = {}):
 		"""Create and display a cube.
 		
 		Arguments:
 		real or tuple -- the size
 		tuple -- the position
 		"""
-		super(cube, self).__init__(modname='cube', size = size)
-		self.position = position
+		super(cube, self).__init__(modname='cube', size = size, center = center)
+		self.transforms = transforms
 
 class cylinder(SCADObject):
 	"""An OpenSCAD cylinder."""	
-	def __init__(self, height, radiusTop, radiusBottom = None, position = (0,0,0)):
+	def __init__(self, height, radiusTop, radiusBottom = None, center = False, transforms = {}):
 		"""Create and display a cylinder.
 		
 		Arguments:
@@ -186,8 +193,8 @@ class cylinder(SCADObject):
 		"""
 		if radiusBottom == None:
 			radiusBottom = radiusTop
-		super(cylinder, self).__init__(modname='cylinder', h = height, r1 = radiusTop, r2 = radiusBottom)
-		self.position = position
+		super(cylinder, self).__init__(modname='cylinder', h = height, r1 = radiusTop, r2 = radiusBottom, center = center)
+		self.transforms = transforms
 
 class union(SCADObject):
 	"""An OpenSCAD union."""
