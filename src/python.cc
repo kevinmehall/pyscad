@@ -36,7 +36,7 @@ extern "C" ModuleInstantiation* inst_module(const char* name, int numargs, Arg* 
 		if (arg->valueType=='d'){
 			a->const_value = new Value(arg->dblValue);
 		}else if(arg->valueType=='b'){
-			a->const_value = new Value(arg->boolValue == 1 ? 'true' : 'false');
+			a->const_value = new Value(arg->boolValue == 1);
 		}else if(arg->valueType=='v'){
 			a->const_value = new Value();
 			a->const_value->type = Value::VECTOR;
