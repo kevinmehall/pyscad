@@ -75,7 +75,7 @@ class SCADObject(object):
 			self.children = []
 		self.args = args
 		self.kwargs = kwargs
-		self.transforms = {}
+		self.transforms = []
 
 	#overload addition, subtraction, multiplication for SCADObjects		
 	def __add__(self, x):
@@ -120,13 +120,13 @@ class SCADObject(object):
 
 		result = _openscad.inst_module(self.modname, numargs, ctypes.byref(args), numchildren, ctypes.byref(children)) 
 		if len(self.transforms) > 0:
-			for transform in self.transforms.keys():
-				modname = ctypes.c_char_p(transform)
+			for transform in self.transforms:
+				modname = ctypes.c_char_p(transform.modname)
 				args = (Arg * 1)()
-				args[0].setFrom(self.transforms[transform])
+				args[0].setFrom(transform.args[0])
 				children = (ctypes.c_void_p * 1)()
 				children[0] = result
-				result = _openscad.inst_module(transform, 1, ctypes.byref(args), 1, children)
+				result = _openscad.inst_module(modname, 1, ctypes.byref(args), 1, children)
 			
 		return result
 		
@@ -156,7 +156,7 @@ class SCADObject(object):
 
 class sphere(SCADObject):
 	"""An OpenSCAD sphere."""
-	def __init__(self, radius, center = True, transforms = {}):
+	def __init__(self, radius, center = True, transforms = []):
 		"""Create and display a sphere.
 		
 		Arguments:
@@ -170,7 +170,7 @@ class sphere(SCADObject):
 
 class cube(SCADObject):
 	"""An OpenSCAD cube."""
-	def __init__(self, size, center = False, transforms = {}):
+	def __init__(self, size, center = False, transforms = []):
 		"""Create and display a cube.
 		
 		Arguments:
@@ -182,7 +182,7 @@ class cube(SCADObject):
 
 class cylinder(SCADObject):
 	"""An OpenSCAD cylinder."""	
-	def __init__(self, height, radiusTop, radiusBottom = None, center = False, transforms = {}):
+	def __init__(self, height, radiusTop, radiusBottom = None, center = False, transforms = []):
 		"""Create and display a cylinder.
 		
 		Arguments:
@@ -225,6 +225,26 @@ class intersection(SCADObject):
 		tuple -- objects to intersect
 		"""
 		super(intersection, self).__init__(modname='intersection', children=children)
+
+class translate(SCADObject):
+	"""An OpenSCAD translation."""
+	def __init__(self, translation):
+		"""Create a translation
+		
+		Arguments:
+		tuple -- x, y, z to translate
+		"""
+		super(translate, self).__init__('translate', translation)
+
+class rotate(SCADObject):
+	"""An OpenSCAD rotation."""
+	def __init__(self, rotation):
+		"""Create a rotation
+		
+		Arguments:
+		tuple -- degrees x, y, z to rotate
+		"""
+		super(rotate, self).__init__('rotate', rotation)
 		
 		
 
